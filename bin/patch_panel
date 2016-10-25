@@ -41,5 +41,45 @@ module PatchPanelApp
     end
   end
 
+
+  desc 'Create a mirror'
+  arg_name 'dpid port#1 mirrorPort'
+  command :mirrorCreate do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      dpid = args[0].hex
+      port1 = args[1].to_i
+      mirror_port = args[2].to_i
+      Trema.trema_process('PatchPanel', options[:socket_dir]).controller.
+        create_mirror(dpid, port1, mirror_port)
+    end
+  end
+
+desc 'List patch and mirror'
+  arg_name 'dpid'
+  command :list do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      dpid = args[0].hex
+      list_temp=Trema.trema_process('PatchPanel', options[:socket_dir]).controller.
+        list()
+      @patch = list_temp[0]
+      @mirror = list_temp[1]
+      
+      print("patch list:\n")
+      @patch[dpid].each do |port_a, port_b|
+        print("port", port_a, " << >> port", port_b, "\n")
+        end
+      print("mirror list:\n")
+      @mirror[dpid].each do |port_a, mirror_port|
+        print("port", port_a, " >> port",mirror_port, "\n")
+        end
+    end
+  end
+
   exit run(ARGV)
 end
